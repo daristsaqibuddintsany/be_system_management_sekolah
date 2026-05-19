@@ -1,18 +1,22 @@
 import mysql.connector
-from resources.ManajemenUser.schema import create_users_table
-from resources.ManajemenSiswa.schema import create_siswa_tables
 
-def get_connection():
+
+def get_connection(database=None):
     try:
+        print("🔵 Mencoba koneksi MySQL...")
+
         conn = mysql.connector.connect(
-            host="localhost",
+            host="127.0.0.1",
             user="root",
             password="test123",
-            database="db_sekolah",  # <- Ini jangan sampai ketinggalan agar tabelnya masuk ke database yang benar
-            port=3306
+            port=3306,
+            database=database
         )
+
+        print("🟢 Berhasil koneksi MySQL")
         return conn
-    except Exception as e:
+
+    except mysql.connector.Error as e:
         print("❌ Gagal koneksi MySQL:", e)
         return None
 
@@ -24,6 +28,9 @@ def init_db():
     cursor = None
 
     try:
+        # =========================
+        # KONEK MYSQL
+        # =========================
         conn = get_connection()
 
         if conn is None:
@@ -32,12 +39,32 @@ def init_db():
 
         cursor = conn.cursor()
 
-        # buat database dulu (ini penting!)
-        cursor.execute("CREATE DATABASE IF NOT EXISTS db_sekolah")
-        cursor.execute("USE db_sekolah")
+        # =========================
+        # BUAT DATABASE
+        # =========================
+        cursor.execute(
+            "CREATE DATABASE IF NOT EXISTS db_sekolah"
+        )
 
-        print("🔵 Database siap")
+        print("🟢 Database siap")
 
+        cursor.close()
+        conn.close()
+
+        # =========================
+        # KONEK KE DATABASE
+        # =========================
+        conn = get_connection("db_sekolah")
+
+        if conn is None:
+            print("❌ Gagal koneksi ke db_sekolah")
+            return
+
+        cursor = conn.cursor()
+
+        # =========================
+        # TABLE USERS
+        # =========================
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -47,8 +74,11 @@ def init_db():
         )
         """)
 
-        print("🔵 Table users siap")
+        print("🟢 Table users siap")
 
+        # =========================
+        # TABLE SISWA
+        # =========================
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS siswa (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -80,10 +110,14 @@ def init_db():
         )
         """)
 
-        print("🔵 Table siswa siap")
+        print("🟢 Table siswa siap")
 
         conn.commit()
+
         print("🟢 SUCCESS: Database & tabel berhasil dibuat")
+
+    except mysql.connector.Error as e:
+        print("❌ ERROR MYSQL:", e)
 
     except Exception as e:
         print("❌ ERROR:", e)
@@ -91,9 +125,11 @@ def init_db():
     finally:
         if cursor:
             cursor.close()
+
         if conn:
             conn.close()
-        print("🔵 koneksi ditutup")
+
+        print("🔵 Koneksi ditutup")
 
 
 if __name__ == "__main__":
