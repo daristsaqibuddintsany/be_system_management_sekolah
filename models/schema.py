@@ -8,14 +8,12 @@ def get_connection(database=None):
         conn = mysql.connector.connect(
             host="127.0.0.1",
             user="root",
-            password="",
+            password="test123",
             port=3306,
-            database=database,
-            connection_timeout=5,
-            auth_plugin="mysql_native_password"
+            database=database
         )
 
-        print("🟢 Koneksi MySQL berhasil")
+        print("🟢 Berhasil koneksi MySQL")
         return conn
 
     except mysql.connector.Error as e:
@@ -30,6 +28,9 @@ def init_db():
     cursor = None
 
     try:
+        # =========================
+        # KONEK MYSQL
+        # =========================
         conn = get_connection()
 
         if conn is None:
@@ -38,6 +39,9 @@ def init_db():
 
         cursor = conn.cursor()
 
+        # =========================
+        # BUAT DATABASE
+        # =========================
         cursor.execute(
             "CREATE DATABASE IF NOT EXISTS db_sekolah"
         )
@@ -47,6 +51,9 @@ def init_db():
         cursor.close()
         conn.close()
 
+        # =========================
+        # KONEK KE DATABASE
+        # =========================
         conn = get_connection("db_sekolah")
 
         if conn is None:
@@ -55,6 +62,9 @@ def init_db():
 
         cursor = conn.cursor()
 
+        # =========================
+        # TABLE USERS
+        # =========================
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -66,6 +76,9 @@ def init_db():
 
         print("🟢 Table users siap")
 
+        # =========================
+        # TABLE SISWA
+        # =========================
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS siswa (
             id INT AUTO_INCREMENT PRIMARY KEY,

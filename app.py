@@ -6,20 +6,46 @@ from datetime import date, datetime
 
 from models.schema import init_db
 
-from resources.users import LoginUser, RegisterUser
+# =========================
+# IMPORT RESOURCES
+# =========================
+
+from resources.ManajemenUser.users import (
+    LoginUser,
+    RegisterUser
+)
 
 from resources.ManajemenSiswa.datasiswa import (
     SiswaResource,
     SiswaByIdResource
 )
 
-# =========================
-# BASE DIRECTORY
-# =========================
+from resources.ManajemenSiswa.datakelas import (
+    DataKelasResource,
+    DataKelasByIdResource
+)
 
-# ====================================
-# CONFIG
-# ====================================
+from resources.ManajemenSiswa.datajurusan import (
+    DataJurusanResource,
+    DataJurusanByIdResource
+)
+
+from resources.ManajemenSiswa.aspekpenilaian import (
+    AspekPenilaianResource,
+    AspekPenilaianByIdResource
+)
+
+from resources.ManajemenSiswa.extracurricular import (
+    ExtracurricularResource,
+    ExtracurricularByIdResource
+)
+
+from resources.ManajemenSiswa.jenissemester import (
+    JenisSemesterResource,
+    JenisSemesterByIdResource
+)
+
+
 
 BASE_DIR = os.path.abspath(
     os.path.join(
@@ -33,12 +59,12 @@ UPLOAD_FOLDER = os.path.join(
     "uploads"
 )
 
-# otomatis buat folder uploads
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(
+    UPLOAD_FOLDER,
+    exist_ok=True
+)
 
-# =========================
-# JSON SERIALIZER
-# =========================
+
 
 def json_serializer(obj):
 
@@ -49,28 +75,20 @@ def json_serializer(obj):
         f"Type {type(obj)} not serializable"
     )
 
-# =========================
-# CORS MIDDLEWARE
-# =========================
+
 
 class CORSMiddleware:
 
     def process_request(self, req, resp):
 
-        resp.set_header(
-            "Access-Control-Allow-Origin",
-            "*"
-        )
+        headers = {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS"
+        }
 
-        resp.set_header(
-            "Access-Control-Allow-Headers",
-            "Content-Type, Authorization"
-        )
-
-        resp.set_header(
-            "Access-Control-Allow-Methods",
-            "GET, POST, PUT, DELETE, OPTIONS"
-        )
+        for key, value in headers.items():
+            resp.set_header(key, value)
 
         if req.method == "OPTIONS":
 
@@ -90,32 +108,24 @@ class CORSMiddleware:
             "*"
         )
 
-# =========================
-# INIT DATABASE
-# =========================
+
 
 init_db()
 
-# =========================
-# APP INIT
-# =========================
+
 
 app = falcon.App(
     middleware=[CORSMiddleware()]
 )
 
-# =========================
-# MULTIPART FORM HANDLER
-# =========================
+
 
 app.req_options.media_handlers.update({
     "multipart/form-data":
     falcon.media.MultipartFormHandler()
 })
 
-# =========================
-# JSON HANDLER
-# =========================
+
 
 app.resp_options.media_handlers[
     falcon.MEDIA_JSON
@@ -126,44 +136,54 @@ app.resp_options.media_handlers[
     )
 )
 
-# =========================
-# STATIC FILES
-# =========================
+
 
 app.add_static_route(
     "/uploads",
     UPLOAD_FOLDER
 )
 
-# =========================
-# ROUTES
-# =========================
 
-# AUTH
-app.add_route(
-    "/auth/login",
-    LoginUser()
-)
 
-app.add_route(
-    "/auth/register",
-    RegisterUser()
-)
+routes = [
 
-# SISWA
-app.add_route(
-    "/siswa",
-    SiswaResource()
-)
+    # AUTH
+    ("/auth/login", LoginUser()),
+    ("/auth/register", RegisterUser()),
 
-app.add_route(
-    "/siswa/{id:int}",
-    SiswaByIdResource()
-)
+    # SISWA
+    ("/siswa", SiswaResource()),
+    ("/siswa/{id:int}", SiswaByIdResource()),
 
-# =========================
-# TEST ROUTE
-# =========================
+    # DATA KELAS
+    ("/datakelas", DataKelasResource()),
+    ("/datakelas/{id:int}", DataKelasByIdResource()),
+
+    # DATA JURUSAN
+    ("/datajurusan", DataJurusanResource()),
+    ("/datajurusan/{id:int}", DataJurusanByIdResource()),
+
+    # ASPEK PENILAIAN
+    ("/aspekpenilaian", AspekPenilaianResource()),
+    ("/aspekpenilaian/{id:int}", AspekPenilaianByIdResource()),
+
+    # EXTRACURRICULAR
+    ("/extracurricular", ExtracurricularResource()),
+    ("/extracurricular/{id:int}", ExtracurricularByIdResource()),
+
+    # JENIS SEMESTER
+    ("/jenissemester", JenisSemesterResource()),
+    ("/jenissemester/{id:int}", JenisSemesterByIdResource()),
+]
+
+for route, resource in routes:
+
+    app.add_route(
+        route,
+        resource
+    )
+
+
 
 class TestResource:
 
@@ -178,6 +198,10 @@ app.add_route(
     "/test",
     TestResource()
 )
+
+# =========================
+# START INFO
+# =========================
 
 print("🚀 APP RUNNING SUCCESSFULLY")
 print(f"📂 Upload Directory: {UPLOAD_FOLDER}")
