@@ -1,12 +1,14 @@
-from models.connection import get_connection
-
+import mysql.connector
+from resources.ManajemenUser.schema import create_users_table
+from resources.ManajemenSiswa.schema import create_siswa_tables
 
 def get_connection():
     try:
         conn = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="test123",   # ⚠️ pastikan ini benar
+            password="test123",
+            database="db_sekolah",  # <- Ini jangan sampai ketinggalan agar tabelnya masuk ke database yang benar
             port=3306
         )
         return conn
