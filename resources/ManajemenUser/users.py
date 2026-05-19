@@ -1,12 +1,20 @@
 # resources/users.py
 
 import falcon
-from werkzeug.security import (
-    generate_password_hash,
-    check_password_hash
-)
+import hashlib
 
 from models.schema import get_connection
+
+
+# =====================================
+# PASSWORD HELPER (GANTI WEKZUEG)
+# =====================================
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+
+def verify_password(hashed, password):
+    return hashed == hashlib.sha256(password.encode()).hexdigest()
 
 
 # =====================================
@@ -16,7 +24,6 @@ class LoginUser:
 
     # TEST GET
     def on_get(self, req, resp):
-
         resp.media = {
             "status": True,
             "message": "Endpoint login aktif"
@@ -37,20 +44,16 @@ class LoginUser:
 
             # VALIDASI
             if not email or not password:
-
                 resp.media = {
                     "status": False,
                     "message": "Email dan password wajib diisi"
                 }
-
                 resp.status = falcon.HTTP_400
                 return
 
             conn = get_connection()
 
-            cursor = conn.cursor(
-                dictionary=True
-            )
+            cursor = conn.cursor(dictionary=True)
 
             # CARI USER
             cursor.execute(
@@ -65,26 +68,19 @@ class LoginUser:
 
             # USER TIDAK ADA
             if not user:
-
                 resp.media = {
                     "status": False,
                     "message": "Email tidak ditemukan"
                 }
-
                 resp.status = falcon.HTTP_401
                 return
 
             # CEK PASSWORD
-            if not check_password_hash(
-                user["password"],
-                password
-            ):
-
+            if not verify_password(user["password"], password):
                 resp.media = {
                     "status": False,
                     "message": "Password salah"
                 }
-
                 resp.status = falcon.HTTP_401
                 return
 
@@ -149,20 +145,16 @@ class RegisterUser:
 
             # VALIDASI
             if not nama or not email or not password:
-
                 resp.media = {
                     "status": False,
                     "message": "Semua field wajib diisi"
                 }
-
                 resp.status = falcon.HTTP_400
                 return
 
             conn = get_connection()
 
-            cursor = conn.cursor(
-                dictionary=True
-            )
+            cursor = conn.cursor(dictionary=True)
 
             # CEK EMAIL SUDAH ADA
             cursor.execute(
@@ -176,19 +168,15 @@ class RegisterUser:
             user_exist = cursor.fetchone()
 
             if user_exist:
-
                 resp.media = {
                     "status": False,
                     "message": "Email sudah digunakan"
                 }
-
                 resp.status = falcon.HTTP_400
                 return
 
             # HASH PASSWORD
-            hashed_password = generate_password_hash(
-                password
-            )
+            hashed_password = hash_password(password)
 
             # INSERT USER
             cursor.execute(
