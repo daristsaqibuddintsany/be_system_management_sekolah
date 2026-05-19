@@ -1,15 +1,24 @@
 import mysql.connector
 
-def get_connection():
+
+def get_connection(database=None):
     try:
+        print("🔵 Mencoba koneksi MySQL...")
+
         conn = mysql.connector.connect(
-            host="localhost",
+            host="127.0.0.1",
             user="root",
-            password="test123",   # ⚠️ pastikan ini benar
-            port=3306
+            password="",
+            port=3306,
+            database=database,
+            connection_timeout=5,
+            auth_plugin="mysql_native_password"
         )
+
+        print("🟢 Koneksi MySQL berhasil")
         return conn
-    except Exception as e:
+
+    except mysql.connector.Error as e:
         print("❌ Gagal koneksi MySQL:", e)
         return None
 
@@ -29,11 +38,22 @@ def init_db():
 
         cursor = conn.cursor()
 
-        # buat database dulu (ini penting!)
-        cursor.execute("CREATE DATABASE IF NOT EXISTS db_sekolah")
-        cursor.execute("USE db_sekolah")
+        cursor.execute(
+            "CREATE DATABASE IF NOT EXISTS db_sekolah"
+        )
 
-        print("🔵 Database siap")
+        print("🟢 Database siap")
+
+        cursor.close()
+        conn.close()
+
+        conn = get_connection("db_sekolah")
+
+        if conn is None:
+            print("❌ Gagal koneksi ke db_sekolah")
+            return
+
+        cursor = conn.cursor()
 
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
@@ -44,7 +64,7 @@ def init_db():
         )
         """)
 
-        print("🔵 Table users siap")
+        print("🟢 Table users siap")
 
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS siswa (
@@ -77,10 +97,14 @@ def init_db():
         )
         """)
 
-        print("🔵 Table siswa siap")
+        print("🟢 Table siswa siap")
 
         conn.commit()
+
         print("🟢 SUCCESS: Database & tabel berhasil dibuat")
+
+    except mysql.connector.Error as e:
+        print("❌ ERROR MYSQL:", e)
 
     except Exception as e:
         print("❌ ERROR:", e)
@@ -88,9 +112,11 @@ def init_db():
     finally:
         if cursor:
             cursor.close()
+
         if conn:
             conn.close()
-        print("🔵 koneksi ditutup")
+
+        print("🔵 Koneksi ditutup")
 
 
 if __name__ == "__main__":
