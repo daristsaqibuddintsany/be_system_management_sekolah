@@ -6,5 +6,6 @@ def get_connection():
         user="root",
         password="test123",
         database="db_sekolah",
-        port=3306
+        port=3306,
+        use_pure=True
     )
