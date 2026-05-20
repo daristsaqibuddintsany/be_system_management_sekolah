@@ -15,6 +15,7 @@ from resources.ManajemenUser.users import (
     RegisterUser
 )
 
+# MANAJEMEN SISWA
 from resources.ManajemenSiswa.datasiswa import (
     SiswaResource,
     SiswaByIdResource
@@ -24,6 +25,7 @@ from resources.ManajemenSiswa.datakelas import (
     DataKelasResource,
     DataKelasByIdResource
 )
+
 
 from resources.ManajemenSiswa.datajurusan import (
     DataJurusanResource,
@@ -44,6 +46,39 @@ from resources.ManajemenSiswa.jenissemester import (
     JenisSemesterResource,
     JenisSemesterByIdResource
 )
+
+from resources.ManajemenSiswa.tahunajaran import (
+    TahunAjaranResource,
+    TahunAjaranByIdResource
+)
+
+from resources.ManajemenSiswa.walikelas import (
+    WaliKelasResource,
+    WaliKelasByIdResource
+)
+
+from resources.ManajemenSiswa.semester import (
+    SemesterResource,
+    SemesterByIdResource
+)
+
+from resources.ManajemenSiswa.dataraport import (
+    DataRaportResource,
+    DataRaportByIdResource
+)
+
+from resources.ManajemenSiswa.absensiharian import (
+    AbsensiHarianResource,
+    AbsensiHarianByIdResource
+)
+
+from resources.ManajemenSiswa.absensimapel import (
+    AbsensiMapelResource,
+    AbsensiMapelByIdResource
+)
+
+#=====================================================#
+
 
 
 
@@ -151,6 +186,8 @@ routes = [
     ("/auth/login", LoginUser()),
     ("/auth/register", RegisterUser()),
 
+
+# MANAJEMENSISWA
     # SISWA
     ("/siswa", SiswaResource()),
     ("/siswa/{id:int}", SiswaByIdResource()),
@@ -174,6 +211,32 @@ routes = [
     # JENIS SEMESTER
     ("/jenissemester", JenisSemesterResource()),
     ("/jenissemester/{id:int}", JenisSemesterByIdResource()),
+    
+    # TAHUN AJARAN
+    ("/tahunajaran", TahunAjaranResource()),
+    ("/tahunajaran/{id:int}", TahunAjaranByIdResource()),
+    
+    # WALI KELAS
+   ("/walikelas", WaliKelasResource()),
+   ("/walikelas/{id:int}", WaliKelasByIdResource()),
+   
+   # SEMESTER
+   ("/semester", SemesterResource()),
+   ("/semester/{id:int}", SemesterByIdResource()),
+   
+   # DATA RAPORT
+("/dataraport", DataRaportResource()),
+("/dataraport/{id:int}", DataRaportByIdResource()),
+
+# ABSENSI HARIAN
+("/absensiharian", AbsensiHarianResource()),
+("/absensiharian/{id:int}", AbsensiHarianByIdResource()),
+
+# ABSENSI MAPEL
+("/absensimapel", AbsensiMapelResource()),
+("/absensimapel/{id:int}", AbsensiMapelByIdResource()),
+
+#==============================================================#
 ]
 
 for route, resource in routes:
