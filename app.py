@@ -79,8 +79,21 @@ from resources.ManajemenSiswa.absensimapel import (
 
 #=====================================================#
 
+# MANAJEMEN GURU
 
 
+
+from resources.ManajemenGuru.jadwalmengajar import (
+    JadwalMengajarResource,
+    JadwalMengajarByIdResource
+)
+
+from resources.ManajemenGuru.matapelajaran import (
+    MataPelajaranResource,
+    MataPelajaranByIdResource
+)
+
+#====================================#
 
 BASE_DIR = os.path.abspath(
     os.path.join(
@@ -237,6 +250,16 @@ routes = [
 ("/absensimapel/{id:int}", AbsensiMapelByIdResource()),
 
 #==============================================================#
+
+# MANAJEMEN GURU
+
+# JADWAL MENGAJAR
+("/jadwalmengajar", JadwalMengajarResource()),
+("/jadwalmengajar/{id:int}", JadwalMengajarByIdResource()),
+
+# MATA PELAJARAN
+("/matapelajaran", MataPelajaranResource()),
+("/matapelajaran/{id:int}", MataPelajaranByIdResource()),
 ]
 
 for route, resource in routes:
