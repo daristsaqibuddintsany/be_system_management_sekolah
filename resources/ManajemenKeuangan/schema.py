@@ -19,11 +19,15 @@ def create_keuangan_table(cursor):
 
         akun_hutang VARCHAR(100) DEFAULT NULL,
 
-        tipe ENUM('Bebas', 'Wajib')
-        DEFAULT 'Wajib',
+        tipe ENUM(
+            'Bebas',
+            'Wajib'
+        ) DEFAULT 'Wajib',
 
-        status ENUM('aktif', 'nonaktif')
-        DEFAULT 'aktif',
+        status ENUM(
+            'aktif',
+            'nonaktif'
+        ) DEFAULT 'aktif',
 
         created_at TIMESTAMP
         DEFAULT CURRENT_TIMESTAMP,
@@ -44,11 +48,17 @@ def create_keuangan_table(cursor):
 
         id INT AUTO_INCREMENT PRIMARY KEY,
 
-        jenis_pembayaran_id INT NOT NULL,
+        siswa_id INT NOT NULL,
+
+        nis VARCHAR(20) NOT NULL,
+
+        nama_siswa VARCHAR(100) NOT NULL,
 
         kelas VARCHAR(50) NOT NULL,
 
         tahun_ajaran VARCHAR(20) NOT NULL,
+
+        bulan VARCHAR(20) NOT NULL,
 
         nominal INT NOT NULL DEFAULT 0,
 
@@ -57,12 +67,7 @@ def create_keuangan_table(cursor):
 
         updated_at TIMESTAMP
         DEFAULT CURRENT_TIMESTAMP
-        ON UPDATE CURRENT_TIMESTAMP,
-
-        CONSTRAINT fk_tarif_jenis
-        FOREIGN KEY (jenis_pembayaran_id)
-        REFERENCES jenis_pembayaran(id)
-        ON DELETE CASCADE
+        ON UPDATE CURRENT_TIMESTAMP
 
     ) ENGINE=InnoDB
     """)
@@ -86,7 +91,7 @@ def create_keuangan_table(cursor):
 
         kelas VARCHAR(50) NOT NULL,
 
-        jenis_pembayaran_id INT NOT NULL,
+        jenis_pembayaran_id INT DEFAULT NULL,
 
         bulan VARCHAR(20) NOT NULL,
 
@@ -106,7 +111,8 @@ def create_keuangan_table(cursor):
         status ENUM(
             'lunas',
             'cicil',
-            'belum'
+            'belum',
+            'aktif'
         ) DEFAULT 'belum',
 
         tanggal_bayar DATE DEFAULT NULL,
@@ -121,49 +127,61 @@ def create_keuangan_table(cursor):
         CONSTRAINT fk_pembayaran_jenis
         FOREIGN KEY (jenis_pembayaran_id)
         REFERENCES jenis_pembayaran(id)
-        ON DELETE CASCADE
+        ON DELETE SET NULL
 
     ) ENGINE=InnoDB
     """)
-    
-    cursor.execute("""
-CREATE TABLE IF NOT EXISTS rekap_siswa (
 
-    id INT AUTO_INCREMENT PRIMARY KEY,
-
-    siswa_id INT NOT NULL,
-
-    nis VARCHAR(20),
-
-    nama_siswa VARCHAR(100),
-
-    kelas VARCHAR(50),
-
-    tahun_ajaran VARCHAR(20),
-
-    total_tagihan INT DEFAULT 0,
-
-    total_bayar INT DEFAULT 0,
-
-    total_tunggakan INT DEFAULT 0
-
-)
-""")
-    
-        # =====================================================
-    # VIEW REKAP PER TANGGAL
+    # =====================================================
+    # TUNGGAKAN SISWA
     # =====================================================
 
     cursor.execute("""
-    CREATE OR REPLACE VIEW view_rekap_per_tanggal AS
+    CREATE TABLE IF NOT EXISTS tunggakan_siswa (
+
+        id INT AUTO_INCREMENT PRIMARY KEY,
+
+        siswa_id INT NOT NULL,
+
+        nis VARCHAR(20) NOT NULL,
+
+        nama_siswa VARCHAR(100) NOT NULL,
+
+        kelas VARCHAR(50) NOT NULL,
+
+        tahun_ajaran VARCHAR(20) NOT NULL,
+
+        bulan VARCHAR(20) NOT NULL,
+
+        nominal INT NOT NULL DEFAULT 0,
+
+        status ENUM(
+            'lunas',
+            'belum_lunas'
+        ) DEFAULT 'belum_lunas',
+
+        keterangan TEXT DEFAULT NULL,
+
+        created_at TIMESTAMP
+        DEFAULT CURRENT_TIMESTAMP,
+
+        updated_at TIMESTAMP
+        DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP
+
+    ) ENGINE=InnoDB
+    """)
+
+    # =====================================================
+    # VIEW REKAP SISWA
+    # =====================================================
+
+    cursor.execute("""
+    CREATE OR REPLACE VIEW view_rekap_siswa AS
 
     SELECT
 
-        p.id,
-
-        p.no_kwitansi,
-
-        p.tanggal_bayar,
+        p.siswa_id,
 
         p.nis,
 
@@ -171,18 +189,53 @@ CREATE TABLE IF NOT EXISTS rekap_siswa (
 
         p.kelas,
 
-        jp.nama AS jenis_pembayaran,
+        p.tahun_ajaran,
 
-        p.jumlah_bayar,
+        SUM(
+            p.jumlah_tagihan
+        ) AS total_tagihan,
 
-        p.status,
+        SUM(
+            p.jumlah_bayar
+        ) AS total_bayar,
 
-        p.petugas,
-
-        p.tahun_ajaran
+        SUM(
+            p.sisa_tagihan
+        ) AS total_tunggakan
 
     FROM pembayaran p
 
-    JOIN jenis_pembayaran jp
-    ON jp.id = p.jenis_pembayaran_id
+    GROUP BY
+
+        p.siswa_id,
+        p.nis,
+        p.nama_siswa,
+        p.kelas,
+        p.tahun_ajaran
     """)
+    
+    cursor.execute("""
+CREATE TABLE IF NOT EXISTS transaksi_tabungan_teller (
+
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    nis VARCHAR(30) NOT NULL,
+
+    jenis ENUM(
+        'Penyetoran',
+        'Penarikan'
+    ) NOT NULL,
+
+    nominal BIGINT NOT NULL DEFAULT 0,
+
+    keterangan TEXT DEFAULT NULL,
+
+    created_at TIMESTAMP
+    DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMP
+    DEFAULT CURRENT_TIMESTAMP
+    ON UPDATE CURRENT_TIMESTAMP
+
+) ENGINE=InnoDB
+""")
