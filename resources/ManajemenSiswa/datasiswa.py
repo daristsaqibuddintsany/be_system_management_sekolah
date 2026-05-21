@@ -1,8 +1,9 @@
 import os
 import uuid
 import falcon
+import traceback
 
-from models.schema import get_connection
+from models.connection import get_connection
 
 
 # ====================================
@@ -22,39 +23,34 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
 # ====================================
-# PARSER MULTIPART (PENTING FIX ERROR)
-# ====================================
-
-# ====================================
 # PARSER MULTIPART (FIX)
 # ====================================
 
 def parse_media(req):
 
-    media = req.get_media()
+    form = req.get_media()
     data = {}
 
-    for key in media:
+    for part in form:
 
-        value = media.get(key)
+        # nama field
+        field_name = part.name
 
+        # ======================
         # FILE
-        if hasattr(value, "filename"):
+        # ======================
 
-            data[key] = value
+        if part.filename:
 
-        # TEXT INPUT
+            data[field_name] = part
+
+        # ======================
+        # TEXT
+        # ======================
+
         else:
 
-            # Falcon multipart biasanya punya .value
-            if hasattr(value, "value"):
-
-                data[key] = value.value
-
-            # fallback jika string biasa
-            else:
-
-                data[key] = value
+            data[field_name] = part.text
 
     return data
 
@@ -65,7 +61,10 @@ def parse_media(req):
 
 class SiswaResource:
 
+    # ====================================
     # GET ALL
+    # ====================================
+
     def on_get(self, req, resp):
 
         try:
@@ -74,7 +73,8 @@ class SiswaResource:
             cursor = conn.cursor(dictionary=True)
 
             cursor.execute("""
-                SELECT * FROM siswa
+                SELECT *
+                FROM siswa
                 ORDER BY id DESC
             """)
 
@@ -87,13 +87,18 @@ class SiswaResource:
 
         except Exception as e:
 
+            traceback.print_exc()
+
             resp.status = falcon.HTTP_500
             resp.media = {
                 "status": False,
                 "message": str(e)
             }
 
+    # ====================================
     # CREATE
+    # ====================================
+
     def on_post(self, req, resp):
 
         try:
@@ -103,6 +108,7 @@ class SiswaResource:
             nis = media.get("nis")
             nama = media.get("nama")
 
+            # VALIDASI
             if not nis or not nama:
 
                 resp.status = falcon.HTTP_400
@@ -112,9 +118,9 @@ class SiswaResource:
                 }
                 return
 
-            # ======================
+            # ====================================
             # HANDLE FOTO
-            # ======================
+            # ====================================
 
             foto = media.get("foto")
             foto_filename = None
@@ -122,28 +128,53 @@ class SiswaResource:
             if foto and hasattr(foto, "filename"):
 
                 ext = foto.filename.split(".")[-1]
+
                 foto_filename = f"{uuid.uuid4()}.{ext}"
 
-                path = os.path.join(UPLOAD_FOLDER, foto_filename)
+                save_path = os.path.join(
+                    UPLOAD_FOLDER,
+                    foto_filename
+                )
 
-                with open(path, "wb") as f:
+                with open(save_path, "wb") as f:
+
                     f.write(foto.file.read())
 
-            # ======================
-            # INSERT DB
-            # ======================
+            # ====================================
+            # INSERT DATABASE
+            # ====================================
 
             conn = get_connection()
             cursor = conn.cursor()
 
             cursor.execute("""
                 INSERT INTO siswa (
-                    nis, nisn, nama, tempat_lahir, tanggal_lahir,
-                    jenis_kelamin, alamat, agama, golongan_darah, status,
-                    tahun_ajaran, tahun_masuk, kelas, jurusan, no_hp,
-                    sekolah_asal, ayah, pekerjaan_ayah, hp_ayah,
-                    ibu, pekerjaan_ibu, hp_ibu,
-                    wali, hp_wali, hubungan_wali, foto
+                    nis,
+                    nisn,
+                    nama,
+                    tempat_lahir,
+                    tanggal_lahir,
+                    jenis_kelamin,
+                    alamat,
+                    agama,
+                    golongan_darah,
+                    status,
+                    tahun_ajaran,
+                    tahun_masuk,
+                    kelas,
+                    jurusan,
+                    no_hp,
+                    sekolah_asal,
+                    ayah,
+                    pekerjaan_ayah,
+                    hp_ayah,
+                    ibu,
+                    pekerjaan_ibu,
+                    hp_ibu,
+                    wali,
+                    hp_wali,
+                    hubungan_wali,
+                    foto
                 )
                 VALUES (
                     %s,%s,%s,%s,%s,
@@ -154,9 +185,10 @@ class SiswaResource:
                     %s,%s,%s,%s
                 )
             """, (
-                nis,
+
+                media.get("nis"),
                 media.get("nisn"),
-                nama,
+                media.get("nama"),
                 media.get("tempat_lahir"),
                 media.get("tanggal_lahir"),
                 media.get("jenis_kelamin"),
@@ -180,20 +212,22 @@ class SiswaResource:
                 media.get("hp_wali"),
                 media.get("hubungan_wali"),
                 foto_filename
+
             ))
 
             conn.commit()
+
             cursor.close()
             conn.close()
 
             resp.media = {
                 "status": True,
-                "message": "Data berhasil ditambahkan"
+                "message": "Data siswa berhasil ditambahkan"
             }
 
         except Exception as e:
 
-            print("ERROR:", e)
+            traceback.print_exc()
 
             resp.status = falcon.HTTP_500
             resp.media = {
@@ -208,6 +242,10 @@ class SiswaResource:
 
 class SiswaByIdResource:
 
+    # ====================================
+    # GET BY ID
+    # ====================================
+
     def on_get(self, req, resp, id):
 
         try:
@@ -216,7 +254,9 @@ class SiswaByIdResource:
             cursor = conn.cursor(dictionary=True)
 
             cursor.execute("""
-                SELECT * FROM siswa WHERE id=%s
+                SELECT *
+                FROM siswa
+                WHERE id = %s
             """, (id,))
 
             data = cursor.fetchone()
@@ -227,21 +267,30 @@ class SiswaByIdResource:
             if not data:
 
                 resp.status = falcon.HTTP_404
+
                 resp.media = {
                     "status": False,
                     "message": "Data tidak ditemukan"
                 }
+
                 return
 
             resp.media = data
 
         except Exception as e:
 
+            traceback.print_exc()
+
             resp.status = falcon.HTTP_500
+
             resp.media = {
                 "status": False,
                 "message": str(e)
             }
+
+    # ====================================
+    # UPDATE
+    # ====================================
 
     def on_put(self, req, resp, id):
 
@@ -253,45 +302,84 @@ class SiswaByIdResource:
             cursor = conn.cursor(dictionary=True)
 
             # ambil foto lama
-            cursor.execute("SELECT foto FROM siswa WHERE id=%s", (id,))
+            cursor.execute(
+                "SELECT foto FROM siswa WHERE id=%s",
+                (id,)
+            )
+
             old = cursor.fetchone()
 
             foto_filename = old["foto"] if old else None
 
-            # foto baru
+            # ====================================
+            # HANDLE FOTO BARU
+            # ====================================
+
             foto = media.get("foto")
 
             if foto and hasattr(foto, "filename"):
 
+                # hapus foto lama
                 if foto_filename:
 
-                    old_path = os.path.join(UPLOAD_FOLDER, foto_filename)
+                    old_path = os.path.join(
+                        UPLOAD_FOLDER,
+                        foto_filename
+                    )
+
                     if os.path.exists(old_path):
+
                         os.remove(old_path)
 
+                # simpan foto baru
                 ext = foto.filename.split(".")[-1]
+
                 foto_filename = f"{uuid.uuid4()}.{ext}"
 
-                path = os.path.join(UPLOAD_FOLDER, foto_filename)
+                save_path = os.path.join(
+                    UPLOAD_FOLDER,
+                    foto_filename
+                )
 
-                with open(path, "wb") as f:
+                with open(save_path, "wb") as f:
+
                     f.write(foto.file.read())
+
+            # ====================================
+            # UPDATE DB
+            # ====================================
 
             cursor.execute("""
                 UPDATE siswa SET
-                    nis=%s, nisn=%s, nama=%s,
-                    tempat_lahir=%s, tanggal_lahir=%s,
-                    jenis_kelamin=%s, alamat=%s, agama=%s,
-                    golongan_darah=%s, status=%s,
-                    tahun_ajaran=%s, tahun_masuk=%s,
-                    kelas=%s, jurusan=%s, no_hp=%s,
+                    nis=%s,
+                    nisn=%s,
+                    nama=%s,
+                    tempat_lahir=%s,
+                    tanggal_lahir=%s,
+                    jenis_kelamin=%s,
+                    alamat=%s,
+                    agama=%s,
+                    golongan_darah=%s,
+                    status=%s,
+                    tahun_ajaran=%s,
+                    tahun_masuk=%s,
+                    kelas=%s,
+                    jurusan=%s,
+                    no_hp=%s,
                     sekolah_asal=%s,
-                    ayah=%s, pekerjaan_ayah=%s, hp_ayah=%s,
-                    ibu=%s, pekerjaan_ibu=%s, hp_ibu=%s,
-                    wali=%s, hp_wali=%s, hubungan_wali=%s,
+                    ayah=%s,
+                    pekerjaan_ayah=%s,
+                    hp_ayah=%s,
+                    ibu=%s,
+                    pekerjaan_ibu=%s,
+                    hp_ibu=%s,
+                    wali=%s,
+                    hp_wali=%s,
+                    hubungan_wali=%s,
                     foto=%s
                 WHERE id=%s
             """, (
+
                 media.get("nis"),
                 media.get("nisn"),
                 media.get("nama"),
@@ -319,24 +407,33 @@ class SiswaByIdResource:
                 media.get("hubungan_wali"),
                 foto_filename,
                 id
+
             ))
 
             conn.commit()
+
             cursor.close()
             conn.close()
 
             resp.media = {
                 "status": True,
-                "message": "Data berhasil diupdate"
+                "message": "Data siswa berhasil diupdate"
             }
 
         except Exception as e:
 
+            traceback.print_exc()
+
             resp.status = falcon.HTTP_500
+
             resp.media = {
                 "status": False,
                 "message": str(e)
             }
+
+    # ====================================
+    # DELETE
+    # ====================================
 
     def on_delete(self, req, resp, id):
 
@@ -345,30 +442,48 @@ class SiswaByIdResource:
             conn = get_connection()
             cursor = conn.cursor(dictionary=True)
 
-            cursor.execute("SELECT foto FROM siswa WHERE id=%s", (id,))
+            # ambil foto
+            cursor.execute(
+                "SELECT foto FROM siswa WHERE id=%s",
+                (id,)
+            )
+
             data = cursor.fetchone()
 
+            # hapus file foto
             if data and data["foto"]:
 
-                path = os.path.join(UPLOAD_FOLDER, data["foto"])
+                foto_path = os.path.join(
+                    UPLOAD_FOLDER,
+                    data["foto"]
+                )
 
-                if os.path.exists(path):
-                    os.remove(path)
+                if os.path.exists(foto_path):
 
-            cursor.execute("DELETE FROM siswa WHERE id=%s", (id,))
+                    os.remove(foto_path)
+
+            # hapus db
+            cursor.execute(
+                "DELETE FROM siswa WHERE id=%s",
+                (id,)
+            )
 
             conn.commit()
+
             cursor.close()
             conn.close()
 
             resp.media = {
                 "status": True,
-                "message": "Data berhasil dihapus"
+                "message": "Data siswa berhasil dihapus"
             }
 
         except Exception as e:
 
+            traceback.print_exc()
+
             resp.status = falcon.HTTP_500
+
             resp.media = {
                 "status": False,
                 "message": str(e)
