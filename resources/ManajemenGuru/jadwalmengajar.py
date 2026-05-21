@@ -11,42 +11,77 @@ class JadwalMengajarResource:
 
     def on_get(self, req, resp):
 
-        tahun_ajaran = req.get_param(
-            "tahun_ajaran"
-        )
+        conn = None
+        cursor = None
 
-        conn = get_connection()
+        try:
 
-        cursor = conn.cursor(
-            dictionary=True
-        )
+            tahun_ajaran = req.get_param(
+                "tahun_ajaran"
+            )
 
-        # FILTER TAHUN AJARAN
-        if tahun_ajaran:
+            conn = get_connection()
 
-            cursor.execute("""
-            SELECT *
-            FROM jadwal_mengajar
-            WHERE tahun_ajaran=%s
-            ORDER BY id DESC
-            """, (tahun_ajaran,))
+            cursor = conn.cursor(
+                dictionary=True
+            )
 
-        else:
+            # FILTER TAHUN AJARAN
+            if tahun_ajaran:
 
-            cursor.execute("""
-            SELECT *
-            FROM jadwal_mengajar
-            ORDER BY id DESC
-            """)
+                cursor.execute("""
+                SELECT *
+                FROM jadwal_mengajar
+                WHERE tahun_ajaran=%s
+                ORDER BY id DESC
+                """, (tahun_ajaran,))
 
-        data = cursor.fetchall()
+            else:
 
-        cursor.close()
-        conn.close()
+                cursor.execute("""
+                SELECT *
+                FROM jadwal_mengajar
+                ORDER BY id DESC
+                """)
 
-        resp.media = data
+            data = cursor.fetchall()
 
-        resp.status = falcon.HTTP_200
+            # =========================
+            # CONVERT TIME
+            # =========================
+            for item in data:
+
+                if item.get("jam_mulai"):
+                    item["jam_mulai"] = str(
+                        item["jam_mulai"]
+                    )
+
+                if item.get("jam_selesai"):
+                    item["jam_selesai"] = str(
+                        item["jam_selesai"]
+                    )
+
+            resp.media = data
+
+            resp.status = falcon.HTTP_200
+
+        except Exception as e:
+
+            print("ERROR GET:", str(e))
+
+            resp.media = {
+                "error": str(e)
+            }
+
+            resp.status = falcon.HTTP_500
+
+        finally:
+
+            if cursor:
+                cursor.close()
+
+            if conn:
+                conn.close()
 
     # =========================
     # CREATE
@@ -54,48 +89,68 @@ class JadwalMengajarResource:
 
     def on_post(self, req, resp):
 
-        body = req.media
+        conn = None
+        cursor = None
 
-        conn = get_connection()
+        try:
 
-        cursor = conn.cursor()
+            body = req.media
 
-        cursor.execute("""
-        INSERT INTO jadwal_mengajar (
+            conn = get_connection()
 
-            nama_guru,
-            mata_pelajaran,
-            kelas,
-            hari,
-            jam_mulai,
-            jam_selesai,
-            tahun_ajaran
+            cursor = conn.cursor()
 
-        )
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (
+            cursor.execute("""
+            INSERT INTO jadwal_mengajar (
 
-            body.get("nama_guru"),
-            body.get("mata_pelajaran"),
-            body.get("kelas"),
-            body.get("hari"),
-            body.get("jam_mulai"),
-            body.get("jam_selesai"),
-            body.get("tahun_ajaran")
+                nama_guru,
+                mata_pelajaran,
+                kelas,
+                hari,
+                jam_mulai,
+                jam_selesai,
+                tahun_ajaran
 
-        ))
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (
 
-        conn.commit()
+                body.get("nama_guru"),
+                body.get("mata_pelajaran"),
+                body.get("kelas"),
+                body.get("hari"),
+                body.get("jam_mulai"),
+                body.get("jam_selesai"),
+                body.get("tahun_ajaran")
 
-        cursor.close()
-        conn.close()
+            ))
 
-        resp.media = {
-            "message":
-            "Data jadwal mengajar berhasil ditambahkan"
-        }
+            conn.commit()
 
-        resp.status = falcon.HTTP_201
+            resp.media = {
+                "message":
+                "Data jadwal mengajar berhasil ditambahkan"
+            }
+
+            resp.status = falcon.HTTP_201
+
+        except Exception as e:
+
+            print("ERROR POST:", str(e))
+
+            resp.media = {
+                "error": str(e)
+            }
+
+            resp.status = falcon.HTTP_500
+
+        finally:
+
+            if cursor:
+                cursor.close()
+
+            if conn:
+                conn.close()
 
 
 class JadwalMengajarByIdResource:
@@ -106,49 +161,69 @@ class JadwalMengajarByIdResource:
 
     def on_put(self, req, resp, id):
 
-        body = req.media
+        conn = None
+        cursor = None
 
-        conn = get_connection()
+        try:
 
-        cursor = conn.cursor()
+            body = req.media
 
-        cursor.execute("""
-        UPDATE jadwal_mengajar
-        SET
+            conn = get_connection()
 
-            nama_guru=%s,
-            mata_pelajaran=%s,
-            kelas=%s,
-            hari=%s,
-            jam_mulai=%s,
-            jam_selesai=%s,
-            tahun_ajaran=%s
+            cursor = conn.cursor()
 
-        WHERE id=%s
-        """, (
+            cursor.execute("""
+            UPDATE jadwal_mengajar
+            SET
 
-            body.get("nama_guru"),
-            body.get("mata_pelajaran"),
-            body.get("kelas"),
-            body.get("hari"),
-            body.get("jam_mulai"),
-            body.get("jam_selesai"),
-            body.get("tahun_ajaran"),
-            id
+                nama_guru=%s,
+                mata_pelajaran=%s,
+                kelas=%s,
+                hari=%s,
+                jam_mulai=%s,
+                jam_selesai=%s,
+                tahun_ajaran=%s
 
-        ))
+            WHERE id=%s
+            """, (
 
-        conn.commit()
+                body.get("nama_guru"),
+                body.get("mata_pelajaran"),
+                body.get("kelas"),
+                body.get("hari"),
+                body.get("jam_mulai"),
+                body.get("jam_selesai"),
+                body.get("tahun_ajaran"),
+                id
 
-        cursor.close()
-        conn.close()
+            ))
 
-        resp.media = {
-            "message":
-            "Data jadwal mengajar berhasil diupdate"
-        }
+            conn.commit()
 
-        resp.status = falcon.HTTP_200
+            resp.media = {
+                "message":
+                "Data jadwal mengajar berhasil diupdate"
+            }
+
+            resp.status = falcon.HTTP_200
+
+        except Exception as e:
+
+            print("ERROR PUT:", str(e))
+
+            resp.media = {
+                "error": str(e)
+            }
+
+            resp.status = falcon.HTTP_500
+
+        finally:
+
+            if cursor:
+                cursor.close()
+
+            if conn:
+                conn.close()
 
     # =========================
     # DELETE
@@ -156,23 +231,43 @@ class JadwalMengajarByIdResource:
 
     def on_delete(self, req, resp, id):
 
-        conn = get_connection()
+        conn = None
+        cursor = None
 
-        cursor = conn.cursor()
+        try:
 
-        cursor.execute("""
-        DELETE FROM jadwal_mengajar
-        WHERE id=%s
-        """, (id,))
+            conn = get_connection()
 
-        conn.commit()
+            cursor = conn.cursor()
 
-        cursor.close()
-        conn.close()
+            cursor.execute("""
+            DELETE FROM jadwal_mengajar
+            WHERE id=%s
+            """, (id,))
 
-        resp.media = {
-            "message":
-            "Data jadwal mengajar berhasil dihapus"
-        }
+            conn.commit()
 
-        resp.status = falcon.HTTP_200
+            resp.media = {
+                "message":
+                "Data jadwal mengajar berhasil dihapus"
+            }
+
+            resp.status = falcon.HTTP_200
+
+        except Exception as e:
+
+            print("ERROR DELETE:", str(e))
+
+            resp.media = {
+                "error": str(e)
+            }
+
+            resp.status = falcon.HTTP_500
+
+        finally:
+
+            if cursor:
+                cursor.close()
+
+            if conn:
+                conn.close()
