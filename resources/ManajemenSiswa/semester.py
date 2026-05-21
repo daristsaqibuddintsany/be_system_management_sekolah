@@ -4,7 +4,7 @@ from models.connection import get_connection
 
 
 class SemesterResource:
-
+#checked
     # =========================
     # GET ALL
     # =========================

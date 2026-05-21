@@ -291,3 +291,11 @@ app.add_route(
 
 print("🚀 APP RUNNING SUCCESSFULLY")
 print(f"📂 Upload Directory: {UPLOAD_FOLDER}")
+
+from wsgiref.simple_server import make_server
+
+if __name__ == "__main__":
+    print("🚀 Server running on http://127.0.0.1:8000")
+
+    with make_server("127.0.0.1", 8000, app) as httpd:
+        httpd.serve_forever()
