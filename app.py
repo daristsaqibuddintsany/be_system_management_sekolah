@@ -6,94 +6,19 @@ from datetime import date, datetime
 
 from models.schema import init_db
 
-# =========================
-# IMPORT RESOURCES
-# =========================
+
 
 from resources.ManajemenUser.users import (
     LoginUser,
     RegisterUser
 )
 
-# MANAJEMEN SISWA
-from resources.ManajemenSiswa.datasiswa import (
-    SiswaResource,
-    SiswaByIdResource
-)
-
-from resources.ManajemenSiswa.datakelas import (
-    DataKelasResource,
-    DataKelasByIdResource
-)
 
 
-from resources.ManajemenSiswa.datajurusan import (
-    DataJurusanResource,
-    DataJurusanByIdResource
-)
+from routes.siswa_routes import register_siswa_routes
+from routes.guru_routes import register_guru_routes
+from routes.keuangan_routes import register_keuangan_routes
 
-from resources.ManajemenSiswa.aspekpenilaian import (
-    AspekPenilaianResource,
-    AspekPenilaianByIdResource
-)
-
-from resources.ManajemenSiswa.extracurricular import (
-    ExtracurricularResource,
-    ExtracurricularByIdResource
-)
-
-from resources.ManajemenSiswa.jenissemester import (
-    JenisSemesterResource,
-    JenisSemesterByIdResource
-)
-
-from resources.ManajemenSiswa.tahunajaran import (
-    TahunAjaranResource,
-    TahunAjaranByIdResource
-)
-
-from resources.ManajemenSiswa.walikelas import (
-    WaliKelasResource,
-    WaliKelasByIdResource
-)
-
-from resources.ManajemenSiswa.semester import (
-    SemesterResource,
-    SemesterByIdResource
-)
-
-from resources.ManajemenSiswa.dataraport import (
-    DataRaportResource,
-    DataRaportByIdResource
-)
-
-from resources.ManajemenSiswa.absensiharian import (
-    AbsensiHarianResource,
-    AbsensiHarianByIdResource
-)
-
-from resources.ManajemenSiswa.absensimapel import (
-    AbsensiMapelResource,
-    AbsensiMapelByIdResource
-)
-
-#=====================================================#
-
-# MANAJEMEN GURU
-
-
-
-from resources.ManajemenGuru.jadwalmengajar import (
-    JadwalMengajarResource,
-    JadwalMengajarByIdResource
-)
-
-from resources.ManajemenGuru.matapelajaran import (
-    MataPelajaranResource,
-    MataPelajaranByIdResource
-)
-
-#====================================#
 
 BASE_DIR = os.path.abspath(
     os.path.join(
@@ -113,7 +38,6 @@ os.makedirs(
 )
 
 
-
 def json_serializer(obj):
 
     if isinstance(obj, (date, datetime)):
@@ -122,7 +46,6 @@ def json_serializer(obj):
     raise TypeError(
         f"Type {type(obj)} not serializable"
     )
-
 
 
 class CORSMiddleware:
@@ -158,7 +81,9 @@ class CORSMiddleware:
 
 
 
+
 init_db()
+
 
 
 
@@ -168,10 +93,12 @@ app = falcon.App(
 
 
 
+
 app.req_options.media_handlers.update({
     "multipart/form-data":
     falcon.media.MultipartFormHandler()
 })
+
 
 
 
@@ -186,6 +113,7 @@ app.resp_options.media_handlers[
 
 
 
+
 app.add_static_route(
     "/uploads",
     UPLOAD_FOLDER
@@ -193,83 +121,24 @@ app.add_static_route(
 
 
 
-routes = [
 
-    # AUTH
-    ("/auth/login", LoginUser()),
-    ("/auth/register", RegisterUser()),
+app.add_route(
+    "/auth/login",
+    LoginUser()
+)
 
-
-# MANAJEMENSISWA
-    # SISWA
-    ("/siswa", SiswaResource()),
-    ("/siswa/{id:int}", SiswaByIdResource()),
-
-    # DATA KELAS
-    ("/datakelas", DataKelasResource()),
-    ("/datakelas/{id:int}", DataKelasByIdResource()),
-
-    # DATA JURUSAN
-    ("/datajurusan", DataJurusanResource()),
-    ("/datajurusan/{id:int}", DataJurusanByIdResource()),
-
-    # ASPEK PENILAIAN
-    ("/aspekpenilaian", AspekPenilaianResource()),
-    ("/aspekpenilaian/{id:int}", AspekPenilaianByIdResource()),
-
-    # EXTRACURRICULAR
-    ("/extracurricular", ExtracurricularResource()),
-    ("/extracurricular/{id:int}", ExtracurricularByIdResource()),
-
-    # JENIS SEMESTER
-    ("/jenissemester", JenisSemesterResource()),
-    ("/jenissemester/{id:int}", JenisSemesterByIdResource()),
-    
-    # TAHUN AJARAN
-    ("/tahunajaran", TahunAjaranResource()),
-    ("/tahunajaran/{id:int}", TahunAjaranByIdResource()),
-    
-    # WALI KELAS
-   ("/walikelas", WaliKelasResource()),
-   ("/walikelas/{id:int}", WaliKelasByIdResource()),
-   
-   # SEMESTER
-   ("/semester", SemesterResource()),
-   ("/semester/{id:int}", SemesterByIdResource()),
-   
-   # DATA RAPORT
-("/dataraport", DataRaportResource()),
-("/dataraport/{id:int}", DataRaportByIdResource()),
-
-# ABSENSI HARIAN
-("/absensiharian", AbsensiHarianResource()),
-("/absensiharian/{id:int}", AbsensiHarianByIdResource()),
-
-# ABSENSI MAPEL
-("/absensimapel", AbsensiMapelResource()),
-("/absensimapel/{id:int}", AbsensiMapelByIdResource()),
-
-#==============================================================#
-
-# MANAJEMEN GURU
-
-# JADWAL MENGAJAR
-("/jadwalmengajar", JadwalMengajarResource()),
-("/jadwalmengajar/{id:int}", JadwalMengajarByIdResource()),
-
-# MATA PELAJARAN
-("/matapelajaran", MataPelajaranResource()),
-("/matapelajaran/{id:int}", MataPelajaranByIdResource()),
-]
-
-for route, resource in routes:
-
-    app.add_route(
-        route,
-        resource
-    )
+app.add_route(
+    "/auth/register",
+    RegisterUser()
+)
 
 
+register_siswa_routes(app)
+
+
+register_guru_routes(app)
+
+register_keuangan_routes(app)
 
 class TestResource:
 
@@ -280,14 +149,14 @@ class TestResource:
             "message": "Backend berjalan"
         }
 
+
 app.add_route(
     "/test",
     TestResource()
 )
 
-# =========================
-# START INFO
-# =========================
+
+
 
 print("🚀 APP RUNNING SUCCESSFULLY")
 print(f"📂 Upload Directory: {UPLOAD_FOLDER}")
