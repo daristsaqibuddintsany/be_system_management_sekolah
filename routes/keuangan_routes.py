@@ -47,6 +47,30 @@ from resources.ManajemenKeuangan.riwayattabungan import (
     RiwayatTabunganResource
 )
 
+from resources.ManajemenKeuangan.riwayattransaksi import (
+    RiwayatTransaksiResource
+)
+
+from resources.ManajemenKeuangan.transaksipenerima import (
+    TransaksiPenerimaanResource,
+    TransaksiPenerimaanByIdResource
+)
+
+from resources.ManajemenKeuangan.jenispenerimaan import (
+    JenisPenerimaanResource,
+    JenisPenerimaanByIdResource
+)
+
+from resources.ManajemenKeuangan.jenispembayaran import (
+    JenisPembayaranResource,
+    JenisPembayaranByIdResource
+)
+
+from resources.ManajemenKeuangan.laporanpenerimaan import (
+    LaporanPenerimaanResource,
+    LaporanPenerimaanByIdResource
+)
+
 
 def register_keuangan_routes(app):
 
@@ -155,4 +179,48 @@ def register_keuangan_routes(app):
     app.add_route(
     "/riwayat-tabungan",
     RiwayatTabunganResource()
+    )
+    
+    app.add_route(
+    "/transaksi",
+    RiwayatTransaksiResource()
+)
+    
+    app.add_route(
+    "/transaksi-penerimaan",
+    TransaksiPenerimaanResource()
+)
+
+    app.add_route(
+    "/transaksi-penerimaan/{id}",
+    TransaksiPenerimaanByIdResource()
+)
+    
+    app.add_route(
+    "/jenis-penerimaan",
+    JenisPenerimaanResource()
+)
+
+    app.add_route(
+    "/jenis-penerimaan/{id:int}",
+    JenisPenerimaanByIdResource()
+)
+    app.add_route(
+    "/jenis-pembayaran",
+    JenisPembayaranResource()
+)
+
+    app.add_route(
+    "/jenis-pembayaran/{id:int}",
+    JenisPembayaranByIdResource()
+)
+    
+    app.add_route(
+    "/laporan-penerimaan",
+    LaporanPenerimaanResource()
+)
+
+    app.add_route(
+    "/laporan-penerimaan/{id:int}",
+    LaporanPenerimaanByIdResource()
 )

@@ -2,7 +2,7 @@ import falcon
 from models.connection import get_connection
 
 
-class JenisPembayaranResource:
+class JenisPenerimaanResource:
 
     # =========================
     # GET ALL
@@ -14,7 +14,7 @@ class JenisPembayaranResource:
 
         cursor.execute("""
         SELECT *
-        FROM jenis_pembayaran
+        FROM jenis_penerimaan
         ORDER BY id DESC
         """)
 
@@ -37,42 +37,43 @@ class JenisPembayaranResource:
         cursor = conn.cursor()
 
         cursor.execute("""
-        INSERT INTO jenis_pembayaran (
+        INSERT INTO jenis_penerimaan (
 
+            akun_harta,
+            kode_keuangan,
             kode,
             nama,
-            akun_harta,
-            akun_pendapatan,
-            akun_hutang,
-            tipe,
+            jenis,
+            keterangan,
             status
 
         )
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         """, (
 
+            body.get("akunHarta"),
+            body.get("kodeKeuangan"),
             body.get("kode"),
             body.get("nama"),
-            body.get("akun_harta"),
-            body.get("akun_pendapatan"),
-            body.get("akun_hutang"),
-            body.get("tipe", "Bebas"),
-            body.get("status", "aktif")
+            body.get("jenis"),
+            body.get("keterangan"),
+            body.get("status", "Aktif")
 
         ))
 
         conn.commit()
+
         cursor.close()
         conn.close()
 
         resp.media = {
-            "message": "Jenis pembayaran berhasil ditambahkan"
+            "message": "Jenis penerimaan berhasil ditambahkan"
         }
 
         resp.status = falcon.HTTP_201
 
 
-class JenisPembayaranByIdResource:
+class JenisPenerimaanByIdResource:
 
     # =========================
     # UPDATE
@@ -85,37 +86,38 @@ class JenisPembayaranByIdResource:
         cursor = conn.cursor()
 
         cursor.execute("""
-        UPDATE jenis_pembayaran
+        UPDATE jenis_penerimaan
         SET
 
+            akun_harta=%s,
+            kode_keuangan=%s,
             kode=%s,
             nama=%s,
-            akun_harta=%s,
-            akun_pendapatan=%s,
-            akun_hutang=%s,
-            tipe=%s,
+            jenis=%s,
+            keterangan=%s,
             status=%s
 
         WHERE id=%s
         """, (
 
+            body.get("akunHarta"),
+            body.get("kodeKeuangan"),
             body.get("kode"),
             body.get("nama"),
-            body.get("akun_harta"),
-            body.get("akun_pendapatan"),
-            body.get("akun_hutang"),
-            body.get("tipe"),
+            body.get("jenis"),
+            body.get("keterangan"),
             body.get("status"),
             id
 
         ))
 
         conn.commit()
+
         cursor.close()
         conn.close()
 
         resp.media = {
-            "message": "Jenis pembayaran berhasil diupdate"
+            "message": "Jenis penerimaan berhasil diupdate"
         }
 
         resp.status = falcon.HTTP_200
@@ -129,16 +131,17 @@ class JenisPembayaranByIdResource:
         cursor = conn.cursor()
 
         cursor.execute("""
-        DELETE FROM jenis_pembayaran
+        DELETE FROM jenis_penerimaan
         WHERE id=%s
         """, (id,))
 
         conn.commit()
+
         cursor.close()
         conn.close()
 
         resp.media = {
-            "message": "Jenis pembayaran berhasil dihapus"
+            "message": "Jenis penerimaan berhasil dihapus"
         }
 
         resp.status = falcon.HTTP_200

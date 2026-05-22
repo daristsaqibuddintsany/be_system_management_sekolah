@@ -239,3 +239,165 @@ CREATE TABLE IF NOT EXISTS transaksi_tabungan_teller (
 
 ) ENGINE=InnoDB
 """)
+    
+    cursor.execute("""
+CREATE TABLE IF NOT EXISTS transaksi_penerimaan (
+
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    kode VARCHAR(50) UNIQUE,
+
+    jenis VARCHAR(100) NOT NULL,
+
+    sumber VARCHAR(150) NOT NULL,
+
+    tanggal DATE NOT NULL,
+
+    nominal BIGINT NOT NULL DEFAULT 0,
+
+    menyetujui VARCHAR(100) DEFAULT NULL,
+
+    keterangan TEXT DEFAULT NULL,
+
+    created_at TIMESTAMP
+    DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMP
+    DEFAULT CURRENT_TIMESTAMP
+    ON UPDATE CURRENT_TIMESTAMP
+
+) ENGINE=InnoDB
+""")
+    
+    cursor.execute("""
+CREATE TABLE IF NOT EXISTS riwayat_tabungan (
+
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    transaksi_id INT DEFAULT NULL,
+
+    nis VARCHAR(30) NOT NULL,
+
+    nama_siswa VARCHAR(100) DEFAULT NULL,
+
+    jenis ENUM(
+        'Setor',
+        'Tarik'
+    ) NOT NULL,
+
+    jumlah BIGINT NOT NULL DEFAULT 0,
+
+    keterangan TEXT DEFAULT NULL,
+
+    tanggal DATE NOT NULL,
+
+    created_at TIMESTAMP
+    DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_riwayat_tabungan
+    FOREIGN KEY (transaksi_id)
+    REFERENCES transaksi_tabungan_teller(id)
+    ON DELETE CASCADE
+
+) ENGINE=InnoDB
+""")
+    
+    cursor.execute("""
+CREATE TABLE IF NOT EXISTS riwayat_transaksi (
+
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    transaksi_id INT DEFAULT NULL,
+
+    kode VARCHAR(50),
+
+    jenis VARCHAR(50),
+
+    nis VARCHAR(30),
+
+    nama VARCHAR(100),
+
+    jumlah BIGINT DEFAULT 0,
+
+    keterangan TEXT DEFAULT NULL,
+
+    tanggal DATE,
+
+    created_at TIMESTAMP
+    DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_riwayat_transaksi
+    FOREIGN KEY (transaksi_id)
+    REFERENCES transaksi_tabungan_teller(id)
+    ON DELETE CASCADE
+
+) ENGINE=InnoDB
+""")
+    
+    cursor.execute("""
+CREATE TABLE IF NOT EXISTS jenis_penerimaan (
+
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    akun_harta VARCHAR(100) NOT NULL,
+
+    kode_keuangan VARCHAR(100) NOT NULL,
+
+    kode VARCHAR(50) UNIQUE NOT NULL,
+
+    nama VARCHAR(150) NOT NULL,
+
+    jenis VARCHAR(100) NOT NULL,
+
+    keterangan TEXT DEFAULT NULL,
+
+    status ENUM(
+        'Aktif',
+        'Nonaktif'
+    ) DEFAULT 'Aktif',
+
+    created_at TIMESTAMP
+    DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMP
+    DEFAULT CURRENT_TIMESTAMP
+    ON UPDATE CURRENT_TIMESTAMP
+
+) ENGINE=InnoDB
+""")
+    
+    # =========================
+# TABEL TRANSAKSI PENGELUARAN
+# =========================
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS transaksi_pengeluaran (
+
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    kode VARCHAR(50) NOT NULL,
+
+    tanggal DATE NOT NULL,
+
+    jenis VARCHAR(100) NOT NULL,
+
+    sumber VARCHAR(150) NOT NULL,
+
+    petugas VARCHAR(100) NOT NULL,
+
+    menyetujui VARCHAR(100) NOT NULL,
+
+    keterangan TEXT DEFAULT NULL,
+
+    nominal DECIMAL(15,2) DEFAULT 0,
+
+    created_at TIMESTAMP
+    DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMP
+    DEFAULT CURRENT_TIMESTAMP
+    ON UPDATE CURRENT_TIMESTAMP
+
+) ENGINE=InnoDB
+""")
+    
