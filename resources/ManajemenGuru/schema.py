@@ -1,42 +1,31 @@
 def create_guru_table(cursor):
 
+    # =====================================================
+    # MATA PELAJARAN (Dibutuhkan oleh matapelajaran.py)
+    # =====================================================
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS guru (
-
+    CREATE TABLE IF NOT EXISTS mata_pelajaran (
         id INT AUTO_INCREMENT PRIMARY KEY,
+        nama VARCHAR(150) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB
+    """)
 
-        nip VARCHAR(50) UNIQUE,
-
+    # =====================================================
+    # JADWAL MENGAJAR (Dibutuhkan oleh jadwalmengajar.py)
+    # =====================================================
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS jadwal_mengajar (
+        id INT AUTO_INCREMENT PRIMARY KEY,
         nama_guru VARCHAR(100) NOT NULL,
-
-        jenis_kelamin ENUM(
-            'Laki-laki',
-            'Perempuan'
-        ) NOT NULL,
-
-        tempat_lahir VARCHAR(100),
-
-        tanggal_lahir DATE,
-
-        alamat TEXT,
-
-        no_hp VARCHAR(20),
-
-        email VARCHAR(100),
-
-        pendidikan_terakhir VARCHAR(100),
-
-        status ENUM(
-            'aktif',
-            'nonaktif'
-        ) DEFAULT 'aktif',
-
-        created_at TIMESTAMP
-        DEFAULT CURRENT_TIMESTAMP,
-
-        updated_at TIMESTAMP
-        DEFAULT CURRENT_TIMESTAMP
-        ON UPDATE CURRENT_TIMESTAMP
-
+        mata_pelajaran VARCHAR(150) NOT NULL,
+        kelas VARCHAR(50) NOT NULL,
+        hari VARCHAR(20) NOT NULL,
+        jam_mulai TIME NOT NULL,
+        jam_selesai TIME NOT NULL,
+        tahun_ajaran VARCHAR(20) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB
     """)
