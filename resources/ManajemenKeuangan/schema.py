@@ -367,37 +367,50 @@ CREATE TABLE IF NOT EXISTS jenis_penerimaan (
 """)
     
 # =====================================================
-    # REKAP PEMBAYARAN BULANAN SISWA
-    # =====================================================
+# REKAP PEMBAYARAN BULANAN SISWA
+# =====================================================
+
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS rekap_pembayaran (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        nis VARCHAR(30) NOT NULL,
-        nama VARCHAR(100) NOT NULL,
-        kelas VARCHAR(50) NOT NULL DEFAULT '',
-        tahun VARCHAR(20) NOT NULL,
-        tipe VARCHAR(50) NOT NULL DEFAULT '',
-        jenis VARCHAR(100) NOT NULL,
-        
-        -- Status pembayaran per bulan (default: '✖' / belum bayar)
-        jan VARCHAR(20) DEFAULT '✖',
-        feb VARCHAR(20) DEFAULT '✖',
-        mar VARCHAR(20) DEFAULT '✖',
-        apr VARCHAR(20) DEFAULT '✖',
-        mei VARCHAR(20) DEFAULT '✖',
-        jun VARCHAR(20) DEFAULT '✖',
-        jul VARCHAR(20) DEFAULT '✖',
-        ags VARCHAR(20) DEFAULT '✖',
-        sep VARCHAR(20) DEFAULT '✖',
-        okt VARCHAR(20) DEFAULT '✖',
-        nov VARCHAR(20) DEFAULT '✖',
-        des VARCHAR(20) DEFAULT '✖',
-        
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB
-    """)
-    
+CREATE TABLE IF NOT EXISTS rekap_pembayaran (
+
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    nis VARCHAR(30) NOT NULL,
+
+    nama VARCHAR(100) NOT NULL,
+
+    kelas VARCHAR(50) NOT NULL DEFAULT '',
+
+    tahun VARCHAR(20) NOT NULL,
+
+    tipe VARCHAR(50) NOT NULL DEFAULT '',
+
+    jenis VARCHAR(100) NOT NULL,
+
+    -- Status pembayaran per bulan
+    jan VARCHAR(20) DEFAULT 'Belum',
+    feb VARCHAR(20) DEFAULT 'Belum',
+    mar VARCHAR(20) DEFAULT 'Belum',
+    apr VARCHAR(20) DEFAULT 'Belum',
+    mei VARCHAR(20) DEFAULT 'Belum',
+    jun VARCHAR(20) DEFAULT 'Belum',
+    jul VARCHAR(20) DEFAULT 'Belum',
+    ags VARCHAR(20) DEFAULT 'Belum',
+    sep VARCHAR(20) DEFAULT 'Belum',
+    okt VARCHAR(20) DEFAULT 'Belum',
+    nov VARCHAR(20) DEFAULT 'Belum',
+    des VARCHAR(20) DEFAULT 'Belum',
+
+    created_at TIMESTAMP
+    DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMP
+    DEFAULT CURRENT_TIMESTAMP
+    ON UPDATE CURRENT_TIMESTAMP
+
+) ENGINE=InnoDB
+""")
+
     # =====================================================
     # REKAP PEMBAYARAN PER TANGGAL (HARIAN)
     # =====================================================
