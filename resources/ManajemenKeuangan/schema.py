@@ -366,38 +366,73 @@ CREATE TABLE IF NOT EXISTS jenis_penerimaan (
 ) ENGINE=InnoDB
 """)
     
-    # =========================
-# TABEL TRANSAKSI PENGELUARAN
-# =========================
-
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS transaksi_pengeluaran (
-
-    id INT AUTO_INCREMENT PRIMARY KEY,
-
-    kode VARCHAR(50) NOT NULL,
-
-    tanggal DATE NOT NULL,
-
-    jenis VARCHAR(100) NOT NULL,
-
-    sumber VARCHAR(150) NOT NULL,
-
-    petugas VARCHAR(100) NOT NULL,
-
-    menyetujui VARCHAR(100) NOT NULL,
-
-    keterangan TEXT DEFAULT NULL,
-
-    nominal DECIMAL(15,2) DEFAULT 0,
-
-    created_at TIMESTAMP
-    DEFAULT CURRENT_TIMESTAMP,
-
-    updated_at TIMESTAMP
-    DEFAULT CURRENT_TIMESTAMP
-    ON UPDATE CURRENT_TIMESTAMP
-
-) ENGINE=InnoDB
-""")
+# =====================================================
+    # REKAP PEMBAYARAN BULANAN SISWA
+    # =====================================================
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS rekap_pembayaran (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        nis VARCHAR(30) NOT NULL,
+        nama VARCHAR(100) NOT NULL,
+        kelas VARCHAR(50) NOT NULL DEFAULT '',
+        tahun VARCHAR(20) NOT NULL,
+        tipe VARCHAR(50) NOT NULL DEFAULT '',
+        jenis VARCHAR(100) NOT NULL,
+        
+        -- Status pembayaran per bulan (default: '✖' / belum bayar)
+        jan VARCHAR(20) DEFAULT '✖',
+        feb VARCHAR(20) DEFAULT '✖',
+        mar VARCHAR(20) DEFAULT '✖',
+        apr VARCHAR(20) DEFAULT '✖',
+        mei VARCHAR(20) DEFAULT '✖',
+        jun VARCHAR(20) DEFAULT '✖',
+        jul VARCHAR(20) DEFAULT '✖',
+        ags VARCHAR(20) DEFAULT '✖',
+        sep VARCHAR(20) DEFAULT '✖',
+        okt VARCHAR(20) DEFAULT '✖',
+        nov VARCHAR(20) DEFAULT '✖',
+        des VARCHAR(20) DEFAULT '✖',
+        
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB
+    """)
     
+    # =====================================================
+    # REKAP PEMBAYARAN PER TANGGAL (HARIAN)
+    # =====================================================
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS rekap_per_tanggal (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        tanggal DATE NOT NULL,
+        no_kwitansi VARCHAR(50) NOT NULL,
+        nis VARCHAR(30) NOT NULL,
+        nama VARCHAR(100) NOT NULL,
+        kelas VARCHAR(50) NOT NULL,
+        petugas VARCHAR(100) NOT NULL,
+        nominal BIGINT NOT NULL DEFAULT 0,
+        
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB
+    """)
+    
+    # =====================================================
+    # TRANSAKSI PENGELUARAN (DIBUTUHKAN OLEH LAPORAN PENERIMAAN)
+    # =====================================================
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS transaksi_pengeluaran (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        kode VARCHAR(50) NOT NULL,
+        tanggal DATE NOT NULL,
+        jenis VARCHAR(100) NOT NULL,
+        sumber VARCHAR(150) NOT NULL,
+        petugas VARCHAR(100) NOT NULL,
+        menyetujui VARCHAR(100) NOT NULL,
+        keterangan TEXT DEFAULT NULL,
+        nominal BIGINT NOT NULL DEFAULT 0,
+        
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB
+    """)
