@@ -1,20 +1,40 @@
 from resources.ManajemenGuru.jadwalmengajar import (
     JadwalMengajarResource,
-    JadwalMengajarByIdResource
+    JadwalMengajarByIdResource,
 )
 
 from resources.ManajemenGuru.matapelajaran import (
     MataPelajaranResource,
-    MataPelajaranByIdResource
+    MataPelajaranByIdResource,
 )
 
 
 def register_guru_routes(app):
 
+    # =========================
     # JADWAL MENGAJAR
-    app.add_route("/jadwalmengajar", JadwalMengajarResource())
-    app.add_route("/jadwalmengajar/{id:int}", JadwalMengajarByIdResource())
+    # =========================
+    app.add_route(
+        "/jadwalmengajar",
+        JadwalMengajarResource()
+    )
 
+    app.add_route(
+        "/jadwalmengajar/{id:int}",
+        JadwalMengajarByIdResource()
+    )
+
+    # =========================
     # MATA PELAJARAN
-    app.add_route("/matapelajaran", MataPelajaranResource())
-    app.add_route("/matapelajaran/{id:int}", MataPelajaranByIdResource())
+    # =========================
+    app.add_route(
+        "/matapelajaran",
+        MataPelajaranResource()
+    )
+
+    app.add_route(
+        "/matapelajaran/{id:int}",
+        MataPelajaranByIdResource()
+    )
+
+    print("ROUTES GURU BERHASIL REGISTER")
