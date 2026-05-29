@@ -1,0 +1,96 @@
+from resources.Perpustakaan.databuku import (
+    DataBukuResource,
+    DataBukuByIdResource
+)
+
+from resources.Perpustakaan.peminjamanbuku import (
+    PeminjamanBukuResource,
+    PeminjamanBukuByIdResource
+)
+
+from resources.Perpustakaan.pengembalianbuku import (
+    PengembalianBukuResource,
+    PengembalianBukuByIdResource
+)
+
+from resources.Perpustakaan.settingdenda import (
+    SettingDendaResource
+)
+
+from resources.Perpustakaan.laporanbuku import (
+    LaporanBukuResource
+)
+
+from resources.Perpustakaan.laporanpeminjaman import (
+    LaporanPeminjamanResource
+)
+
+from resources.Perpustakaan.laporanpeminjaman import (
+    LaporanPeminjamanResource
+)
+
+from resources.Perpustakaan.laporanpengembalian import (
+    LaporanPengembalianResource
+)
+
+from resources.Perpustakaan.laporandenda import (
+    LaporanDendaResource
+)
+
+def register_perpustakaan_routes(app):
+    
+    app.add_route(
+    '/databuku',
+    DataBukuResource()
+)
+
+    app.add_route(
+    '/databuku/{id:int}',
+    DataBukuByIdResource()
+)
+    
+    app.add_route(
+    '/peminjamanbuku',
+    PeminjamanBukuResource()
+)
+
+    app.add_route(
+    '/peminjamanbuku/{id:int}',
+    PeminjamanBukuByIdResource()
+)
+    
+    app.add_route(
+    "/pengembalian-buku",
+    PengembalianBukuResource()
+)
+
+    app.add_route(
+    "/pengembalian-buku/{id:int}",
+    PengembalianBukuByIdResource()
+)
+    
+    
+    app.add_route(
+    "/setting-denda",
+    SettingDendaResource()
+)
+    
+    app.add_route(
+    "/laporan-buku",
+    LaporanBukuResource()
+)
+    
+    app.add_route(
+    "/laporan-peminjaman",
+    LaporanPeminjamanResource()
+)
+    
+    app.add_route(
+    "/laporan-pengembalian",
+    LaporanPengembalianResource()
+)
+    
+    app.add_route(
+    "/laporan-denda",
+    LaporanDendaResource()
+)

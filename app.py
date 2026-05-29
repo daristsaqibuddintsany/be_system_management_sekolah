@@ -18,6 +18,8 @@ from resources.ManajemenUser.users import (
 from routes.siswa_routes import register_siswa_routes
 from routes.guru_routes import register_guru_routes
 from routes.keuangan_routes import register_keuangan_routes
+from routes.keuangan_routes import register_keuangan_routes
+from routes.routes_aplikasi import register_aplikasi_routes
 
 
 BASE_DIR = os.path.abspath(
@@ -135,8 +137,11 @@ app.add_route(
 
 register_siswa_routes(app)
 
+register_aplikasi_routes(app)
 
 register_guru_routes(app)
+
+register_keuangan_routes(app)
 
 register_keuangan_routes(app)
 
