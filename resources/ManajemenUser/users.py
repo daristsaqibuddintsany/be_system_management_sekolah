@@ -7,14 +7,10 @@ from models.schema import get_connection
 
 
 # =====================================
-# PASSWORD HELPER (GANTI WEKZUEG)
+# HASH PASSWORD
 # =====================================
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
-
-
-def verify_password(hashed, password):
-    return hashed == hashlib.sha256(password.encode()).hexdigest()
 
 
 # =====================================
@@ -22,14 +18,6 @@ def verify_password(hashed, password):
 # =====================================
 class LoginUser:
 
-    # TEST GET
-    def on_get(self, req, resp):
-        resp.media = {
-            "status": True,
-            "message": "Endpoint login aktif"
-        }
-
-    # LOGIN POST
     def on_post(self, req, resp):
 
         conn = None
@@ -37,17 +25,18 @@ class LoginUser:
 
         try:
 
-            data = req.media
+            data = req.media or {}
 
-            email = data.get("email")
-            password = data.get("password")
+            email = data.get("email", "").strip().lower()
+            password = data.get("password", "").strip()
 
-            # VALIDASI
             if not email or not password:
+
                 resp.media = {
                     "status": False,
                     "message": "Email dan password wajib diisi"
                 }
+
                 resp.status = falcon.HTTP_400
                 return
 
@@ -55,10 +44,39 @@ class LoginUser:
 
             cursor = conn.cursor(dictionary=True)
 
-            # CARI USER
+            # AUTO BUAT ADMIN
+            cursor.execute(
+                "SELECT * FROM users WHERE email=%s",
+                ("admin@gmail.com",)
+            )
+
+            admin = cursor.fetchone()
+
+            if not admin:
+
+                cursor.execute(
+                    """
+                    INSERT INTO users (
+                        nama,
+                        email,
+                        password
+                    )
+                    VALUES (%s, %s, %s)
+                    """,
+                    (
+                        "Admin",
+                        "admin@gmail.com",
+                        hash_password("123")
+                    )
+                )
+
+                conn.commit()
+
+            # LOGIN USER
             cursor.execute(
                 """
-                SELECT * FROM users
+                SELECT *
+                FROM users
                 WHERE email=%s
                 """,
                 (email,)
@@ -66,25 +84,29 @@ class LoginUser:
 
             user = cursor.fetchone()
 
-            # USER TIDAK ADA
+            # EMAIL TIDAK ADA
             if not user:
+
                 resp.media = {
                     "status": False,
                     "message": "Email tidak ditemukan"
                 }
+
                 resp.status = falcon.HTTP_401
                 return
 
-            # CEK PASSWORD
-            if not verify_password(user["password"], password):
+            # PASSWORD SALAH
+            if user["password"] != hash_password(password):
+
                 resp.media = {
                     "status": False,
                     "message": "Password salah"
                 }
+
                 resp.status = falcon.HTTP_401
                 return
 
-            # BERHASIL LOGIN
+            # LOGIN BERHASIL
             resp.media = {
                 "status": True,
                 "message": "Login berhasil",
@@ -121,15 +143,6 @@ class LoginUser:
 # =====================================
 class RegisterUser:
 
-    # TEST GET
-    def on_get(self, req, resp):
-
-        resp.media = {
-            "status": True,
-            "message": "Endpoint register aktif"
-        }
-
-    # REGISTER POST
     def on_post(self, req, resp):
 
         conn = None
@@ -137,18 +150,19 @@ class RegisterUser:
 
         try:
 
-            data = req.media
+            data = req.media or {}
 
-            nama = data.get("nama")
-            email = data.get("email")
-            password = data.get("password")
+            nama = data.get("nama", "").strip()
+            email = data.get("email", "").strip().lower()
+            password = data.get("password", "").strip()
 
-            # VALIDASI
             if not nama or not email or not password:
+
                 resp.media = {
                     "status": False,
                     "message": "Semua field wajib diisi"
                 }
+
                 resp.status = falcon.HTTP_400
                 return
 
@@ -156,27 +170,23 @@ class RegisterUser:
 
             cursor = conn.cursor(dictionary=True)
 
-            # CEK EMAIL SUDAH ADA
+            # CEK EMAIL
             cursor.execute(
-                """
-                SELECT * FROM users
-                WHERE email=%s
-                """,
+                "SELECT * FROM users WHERE email=%s",
                 (email,)
             )
 
-            user_exist = cursor.fetchone()
+            user = cursor.fetchone()
 
-            if user_exist:
+            if user:
+
                 resp.media = {
                     "status": False,
                     "message": "Email sudah digunakan"
                 }
+
                 resp.status = falcon.HTTP_400
                 return
-
-            # HASH PASSWORD
-            hashed_password = hash_password(password)
 
             # INSERT USER
             cursor.execute(
@@ -191,7 +201,7 @@ class RegisterUser:
                 (
                     nama,
                     email,
-                    hashed_password
+                    hash_password(password)
                 )
             )
 

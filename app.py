@@ -2,29 +2,34 @@ import os
 import json
 import falcon
 
-from datetime import date, datetime
+from datetime import (
+    date,
+    datetime
+)
+
+from waitress import serve
 
 from models.schema import init_db
-
-
 
 from resources.ManajemenUser.users import (
     LoginUser,
     RegisterUser
 )
 
+from routes.siswa_routes import (
+    register_siswa_routes
+)
 
+from routes.guru_routes import (
+    register_guru_routes
+)
 
-from routes.siswa_routes import register_siswa_routes
-from routes.guru_routes import register_guru_routes
-from routes.keuangan_routes import register_keuangan_routes
+# =========================================
+# ROOT PROJECT
+# =========================================
 
-
-BASE_DIR = os.path.abspath(
-    os.path.join(
-        os.path.dirname(__file__),
-        "../../"
-    )
+BASE_DIR = os.path.dirname(
+    os.path.abspath(__file__)
 )
 
 UPLOAD_FOLDER = os.path.join(
@@ -37,90 +42,102 @@ os.makedirs(
     exist_ok=True
 )
 
+print("📂 APP UPLOAD:", UPLOAD_FOLDER)
+
+# =========================================
+# JSON SERIALIZER
+# =========================================
 
 def json_serializer(obj):
 
     if isinstance(obj, (date, datetime)):
         return obj.isoformat()
 
-    raise TypeError(
-        f"Type {type(obj)} not serializable"
-    )
+    raise TypeError
 
+# =========================================
+# CORS
+# =========================================
 
 class CORSMiddleware:
 
     def process_request(self, req, resp):
-
-        headers = {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS"
-        }
-
-        for key, value in headers.items():
-            resp.set_header(key, value)
-
-        if req.method == "OPTIONS":
-
-            resp.status = falcon.HTTP_200
-            resp.complete = True
-
-    def process_response(
-        self,
-        req,
-        resp,
-        resource,
-        req_succeeded
-    ):
 
         resp.set_header(
             "Access-Control-Allow-Origin",
             "*"
         )
 
+        resp.set_header(
+            "Access-Control-Allow-Headers",
+            "*"
+        )
 
+        resp.set_header(
+            "Access-Control-Allow-Methods",
+            "*"
+        )
 
+        if req.method == "OPTIONS":
+
+            resp.status = falcon.HTTP_200
+
+            resp.complete = True
+
+# =========================================
+# INIT DB
+# =========================================
 
 init_db()
 
-
-
+# =========================================
+# APP
+# =========================================
 
 app = falcon.App(
     middleware=[CORSMiddleware()]
 )
 
-
-
+# =========================================
+# MULTIPART
+# =========================================
 
 app.req_options.media_handlers.update({
+
     "multipart/form-data":
     falcon.media.MultipartFormHandler()
+
 })
 
-
-
+# =========================================
+# JSON
+# =========================================
 
 app.resp_options.media_handlers[
     falcon.MEDIA_JSON
 ] = falcon.media.JSONHandler(
+
     dumps=lambda obj: json.dumps(
         obj,
         default=json_serializer
     )
+
 )
 
-
-
+# =========================================
+# STATIC ROUTE
+# =========================================
 
 app.add_static_route(
     "/uploads",
     UPLOAD_FOLDER
 )
 
+print("✅ STATIC ROUTE AKTIF")
 
-
+# =========================================
+# AUTH
+# =========================================
 
 app.add_route(
     "/auth/login",
@@ -132,13 +149,21 @@ app.add_route(
     RegisterUser()
 )
 
+# =========================================
+# SISWA ROUTES
+# =========================================
 
 register_siswa_routes(app)
 
+# =========================================
+# GURU ROUTES
+# =========================================
 
 register_guru_routes(app)
 
-register_keuangan_routes(app)
+# =========================================
+# TEST
+# =========================================
 
 class TestResource:
 
@@ -149,22 +174,22 @@ class TestResource:
             "message": "Backend berjalan"
         }
 
-
 app.add_route(
     "/test",
     TestResource()
 )
 
-
-
-
-print("🚀 APP RUNNING SUCCESSFULLY")
-print(f"📂 Upload Directory: {UPLOAD_FOLDER}")
-
-from wsgiref.simple_server import make_server
+# =========================================
+# RUN SERVER
+# =========================================
 
 if __name__ == "__main__":
-    print("🚀 Server running on http://127.0.0.1:8000")
 
-    with make_server("127.0.0.1", 8000, app) as httpd:
-        httpd.serve_forever()
+    print("🚀 SERVER RUNNING")
+    print("📂 UPLOAD:", UPLOAD_FOLDER)
+
+    serve(
+        app,
+        host="127.0.0.1",
+        port=8000
+    )

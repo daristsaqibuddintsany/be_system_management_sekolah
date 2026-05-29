@@ -58,6 +58,9 @@ from resources.ManajemenSiswa.absensimapel import (
     AbsensiMapelByIdResource
 )
 
+# ====================================
+# REGISTER ROUTES
+# ====================================
 
 def register_siswa_routes(app):
 
