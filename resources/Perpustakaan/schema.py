@@ -1,113 +1,138 @@
+
 def create_perpustakaan_table(cursor):
-    
+
+    # =====================================================
+    # DATA BUKU
+    # =====================================================
+
     cursor.execute("""
-CREATE TABLE IF NOT EXISTS data_buku (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    CREATE TABLE IF NOT EXISTS data_buku (
 
-    barcode VARCHAR(50) NOT NULL UNIQUE,
+        id INT AUTO_INCREMENT PRIMARY KEY,
 
-    judul VARCHAR(200) NOT NULL,
+        barcode VARCHAR(50) NOT NULL UNIQUE,
 
-    isbn VARCHAR(100),
+        judul VARCHAR(200) NOT NULL,
 
-    penulis VARCHAR(150),
+        isbn VARCHAR(100),
 
-    penerbit VARCHAR(150),
+        penulis VARCHAR(150),
 
-    tahun INT,
+        penerbit VARCHAR(150),
 
-    harga BIGINT DEFAULT 0,
+        tahun YEAR,
 
-    kondisi ENUM(
-        'Baik',
-        'Rusak Ringan',
-        'Rusak Berat',
-        'Tidak Diketahui'
-    ) DEFAULT 'Baik',
+        harga BIGINT DEFAULT 0,
 
-    kategori VARCHAR(100),
+        kondisi ENUM(
+            'Baik',
+            'Rusak Ringan',
+            'Rusak Berat',
+            'Tidak Diketahui'
+        ) DEFAULT 'Baik',
 
-    rak VARCHAR(100),
+        kategori VARCHAR(100),
 
-    stok INT DEFAULT 0,
+        rak VARCHAR(100),
 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        stok INT DEFAULT 0,
 
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
 
-    INDEX idx_judul (judul),
-    INDEX idx_isbn (isbn),
-    INDEX idx_kategori (kategori),
-    INDEX idx_rak (rak)
+        INDEX idx_judul (judul),
+        INDEX idx_isbn (isbn),
+        INDEX idx_kategori (kategori),
+        INDEX idx_rak (rak)
 
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-""")
-    
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    """)
+
+    # =====================================================
+    # PEMINJAMAN
+    # =====================================================
+
     cursor.execute("""
-CREATE TABLE IF NOT EXISTS peminjaman_buku (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    CREATE TABLE IF NOT EXISTS peminjaman_buku (
 
-    kode_peminjaman VARCHAR(50) NOT NULL UNIQUE,
+        id INT AUTO_INCREMENT PRIMARY KEY,
 
-    anggota_id INT NOT NULL,
+        kode_peminjaman VARCHAR(50) NOT NULL UNIQUE,
 
-    nama_anggota VARCHAR(150) NOT NULL,
+        anggota_id INT NOT NULL,
 
-    tanggal_pinjam DATE NOT NULL,
+        nama_anggota VARCHAR(150) NOT NULL,
 
-    tanggal_kembali DATE NOT NULL,
+        tanggal_pinjam DATE NOT NULL,
 
-    total_buku INT DEFAULT 0,
+        tanggal_kembali DATE NOT NULL,
 
-    status ENUM(
-        'Dipinjam',
-        'Dikembalikan',
-        'Terlambat'
-    ) DEFAULT 'Dipinjam',
+        total_buku INT DEFAULT 0,
 
-    catatan TEXT,
+        status ENUM(
+            'Dipinjam',
+            'Dikembalikan',
+            'Terlambat'
+        ) DEFAULT 'Dipinjam',
 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        catatan TEXT,
 
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
 
-    INDEX idx_kode (kode_peminjaman),
-    INDEX idx_anggota (anggota_id),
-    INDEX idx_status (status)
+        INDEX idx_kode (kode_peminjaman),
+        INDEX idx_anggota (anggota_id),
+        INDEX idx_status (status)
 
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-""")
-    
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    """)
+
+    # =====================================================
+    # DETAIL PEMINJAMAN
+    # =====================================================
+
     cursor.execute("""
-CREATE TABLE IF NOT EXISTS peminjaman_buku_detail (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    CREATE TABLE IF NOT EXISTS peminjaman_buku_detail (
 
-    peminjaman_id INT NOT NULL,
+        id INT AUTO_INCREMENT PRIMARY KEY,
 
-    buku_id INT NOT NULL,
+        peminjaman_id INT NOT NULL,
 
-    barcode VARCHAR(50),
+        buku_id INT NOT NULL,
 
-    judul_buku VARCHAR(200) NOT NULL,
+        barcode VARCHAR(50),
 
-    qty INT DEFAULT 1,
+        judul_buku VARCHAR(200) NOT NULL,
 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        qty INT DEFAULT 1,
 
-    FOREIGN KEY (peminjaman_id)
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+        FOREIGN KEY (peminjaman_id)
         REFERENCES peminjaman_buku(id)
         ON DELETE CASCADE,
 
-    INDEX idx_peminjaman (peminjaman_id),
-    INDEX idx_buku (buku_id)
+        FOREIGN KEY (buku_id)
+        REFERENCES data_buku(id)
+        ON DELETE CASCADE,
 
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-""")
-    
+        INDEX idx_peminjaman (peminjaman_id),
+        INDEX idx_buku (buku_id)
+
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    """)
+
+    # =====================================================
+    # PENGEMBALIAN
+    # =====================================================
+
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS pengembalian_buku (
+
         id INT AUTO_INCREMENT PRIMARY KEY,
 
         peminjaman_id INT NOT NULL,
@@ -140,9 +165,16 @@ CREATE TABLE IF NOT EXISTS peminjaman_buku_detail (
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ON UPDATE CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
 
-    ) ENGINE=InnoDB
+        FOREIGN KEY (peminjaman_id)
+        REFERENCES peminjaman_buku(id)
+        ON DELETE CASCADE,
+
+        INDEX idx_pengembalian (kode_pengembalian),
+        INDEX idx_peminjaman (peminjaman_id)
+
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     """)
 
     # =====================================================
@@ -151,6 +183,7 @@ CREATE TABLE IF NOT EXISTS peminjaman_buku_detail (
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS pengembalian_buku_detail (
+
         id INT AUTO_INCREMENT PRIMARY KEY,
 
         pengembalian_id INT NOT NULL,
@@ -167,10 +200,18 @@ CREATE TABLE IF NOT EXISTS peminjaman_buku_detail (
 
         FOREIGN KEY (pengembalian_id)
         REFERENCES pengembalian_buku(id)
+        ON DELETE CASCADE,
+
+        FOREIGN KEY (buku_id)
+        REFERENCES data_buku(id)
         ON DELETE CASCADE
 
-    ) ENGINE=InnoDB
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     """)
+
+    # =====================================================
+    # SETTING DENDA
+    # =====================================================
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS setting_denda (
@@ -184,19 +225,18 @@ CREATE TABLE IF NOT EXISTS peminjaman_buku_detail (
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP
 
-    ) ENGINE=InnoDB
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     """)
 
-    # =========================
-    # DEFAULT DATA
-    # =========================
+    # =====================================================
+    # DEFAULT DENDA
+    # =====================================================
 
     cursor.execute("""
-    SELECT COUNT(*) as total
-    FROM setting_denda
+    SELECT COUNT(*) FROM setting_denda
     """)
 
-    total = cursor.fetchone()["total"]
+    total = cursor.fetchone()[0]
 
     if total == 0:
 
@@ -205,181 +245,4 @@ CREATE TABLE IF NOT EXISTS peminjaman_buku_detail (
             denda_per_hari
         ) VALUES (%s)
         """, (1000,))
-        
-        
-    # =====================================================
-# LAPORAN BUKU
-# =====================================================
 
-    cursor.execute("""
-CREATE TABLE IF NOT EXISTS laporan_buku (
-
-    id INT AUTO_INCREMENT PRIMARY KEY,
-
-    buku_id INT NOT NULL,
-
-    judul_buku VARCHAR(200) NOT NULL,
-
-    isbn VARCHAR(100),
-
-    penulis VARCHAR(150),
-
-    tahun_terbit YEAR,
-
-    kategori VARCHAR(100),
-
-    stok_total INT DEFAULT 0,
-
-    dipinjam INT DEFAULT 0,
-
-    tersedia INT DEFAULT 0,
-
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    ON UPDATE CURRENT_TIMESTAMP,
-
-    FOREIGN KEY (buku_id)
-    REFERENCES data_buku(id)
-    ON DELETE CASCADE
-
-) ENGINE=InnoDB
-""")
-    
-    # =====================================================
-# LAPORAN PEMINJAMAN BUKU
-# =====================================================
-
-    cursor.execute("""
-CREATE TABLE IF NOT EXISTS laporan_peminjaman (
-
-    id INT AUTO_INCREMENT PRIMARY KEY,
-
-    peminjaman_id INT NOT NULL,
-
-    anggota_id INT NOT NULL,
-
-    nama_anggota VARCHAR(150) NOT NULL,
-
-    buku_id INT NOT NULL,
-
-    judul_buku VARCHAR(200) NOT NULL,
-
-    tanggal_pinjam DATE NOT NULL,
-
-    tanggal_kembali DATE,
-
-    status ENUM(
-        'Dipinjam',
-        'Dikembalikan',
-        'Terlambat'
-    ) DEFAULT 'Dipinjam',
-
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    ON UPDATE CURRENT_TIMESTAMP,
-
-    FOREIGN KEY (peminjaman_id)
-    REFERENCES peminjaman_buku(id)
-    ON DELETE CASCADE,
-
-    FOREIGN KEY (buku_id)
-    REFERENCES data_buku(id)
-    ON DELETE CASCADE
-
-) ENGINE=InnoDB
-""")
-    
-    # =====================================================
-# LAPORAN PENGEMBALIAN BUKU
-# =====================================================
-
-    cursor.execute("""
-CREATE TABLE IF NOT EXISTS laporan_pengembalian (
-
-    id INT AUTO_INCREMENT PRIMARY KEY,
-
-    pengembalian_id INT NOT NULL,
-
-    anggota_id INT NOT NULL,
-
-    nama_anggota VARCHAR(150) NOT NULL,
-
-    buku_id INT NOT NULL,
-
-    judul_buku VARCHAR(200) NOT NULL,
-
-    tanggal_pinjam DATE NOT NULL,
-
-    tanggal_kembali DATE NOT NULL,
-
-    tanggal_dikembalikan DATE NOT NULL,
-
-    total_denda BIGINT DEFAULT 0,
-
-    status ENUM(
-        'Tepat Waktu',
-        'Terlambat'
-    ) DEFAULT 'Tepat Waktu',
-
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    ON UPDATE CURRENT_TIMESTAMP,
-
-    FOREIGN KEY (pengembalian_id)
-    REFERENCES pengembalian_buku(id)
-    ON DELETE CASCADE,
-
-    FOREIGN KEY (buku_id)
-    REFERENCES data_buku(id)
-    ON DELETE CASCADE
-
-) ENGINE=InnoDB
-""")
-    
-    # =====================================================
-# LAPORAN DENDA
-# =====================================================
-
-    cursor.execute("""
-CREATE TABLE IF NOT EXISTS laporan_denda (
-
-    id INT AUTO_INCREMENT PRIMARY KEY,
-
-    pengembalian_id INT NOT NULL,
-
-    anggota_id INT NOT NULL,
-
-    nama_anggota VARCHAR(150) NOT NULL,
-
-    buku_id INT NOT NULL,
-
-    judul_buku VARCHAR(200) NOT NULL,
-
-    tanggal_kembali DATE NOT NULL,
-
-    tanggal_dikembalikan DATE NOT NULL,
-
-    terlambat_hari INT DEFAULT 0,
-
-    total_denda BIGINT DEFAULT 0,
-
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    ON UPDATE CURRENT_TIMESTAMP,
-
-    FOREIGN KEY (pengembalian_id)
-    REFERENCES pengembalian_buku(id)
-    ON DELETE CASCADE,
-
-    FOREIGN KEY (buku_id)
-    REFERENCES data_buku(id)
-    ON DELETE CASCADE
-
-) ENGINE=InnoDB
-""")
-    
-    
